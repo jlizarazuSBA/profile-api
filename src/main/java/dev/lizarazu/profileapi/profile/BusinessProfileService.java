@@ -28,7 +28,7 @@ public class BusinessProfileService {
                 ),
                 List.of(
                         "Demonstration only. No government sources were queried.",
-                        "The supplied UEI is echoed without validation or lookup."
+                        "The supplied UEI is format-validated only; its existence in SAM.gov has not been verified."
                 )
         );
     }
