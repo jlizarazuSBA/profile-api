@@ -1,5 +1,7 @@
 package dev.lizarazu.profileapi.profile;
 
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -8,12 +10,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class BusinessProfileServiceTest {
 
     private final BusinessProfileService service =
-            new BusinessProfileService();
+            new BusinessProfileService(Optional.empty());
 
     @Test
     void createsClearlyLabeledSampleProfile() {
         BusinessProfileResponse response =
                 service.getProfile("DEMO12345678");
+
         assertEquals("DEMO12345678", response.uei());
         assertTrue(response.sampleData());
 
@@ -33,6 +36,7 @@ public class BusinessProfileServiceTest {
     void usesTheIdentifierProvidedToTheService() {
         BusinessProfileResponse response =
                 service.getProfile("ANOTHER12345");
+
         assertEquals("ANOTHER12345", response.uei());
     }
 }
