@@ -5,6 +5,8 @@ import java.util.Optional;
 
 import dev.lizarazu.profileapi.sam.SamEntityClient;
 import dev.lizarazu.profileapi.sam.SamEntityResponse;
+import dev.lizarazu.profileapi.sam.SamEntity;
+import dev.lizarazu.profileapi.sam.SamEntityRegistration;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.RestClientException;
@@ -102,6 +104,98 @@ public class BusinessProfileServiceTest {
         assertEquals(
                 BusinessProfileResponse.SourceStatus.SAMPLE,
                 response.awardHistory().status()
+        );
+    }
+
+        private static final String UEI = "DEMO12345678";
+
+    private BusinessProfileResponse profileWith(SamEntityResponse samResponse) {
+        SamEntityClient client = mock(SamEntityClient.class);
+        when(client.findByUei(UEI)).thenReturn(samResponse);
+        return new BusinessProfileService(Optional.of(client)).getProfile(UEI);
+    }
+
+    private SamEntity entity(String uei, String name, String status) {
+        return new SamEntity(new SamEntityRegistration(uei, name, status));
+    }
+
+    @Test
+    void reportsAvailableForSingleMatchingRegistration() {
+        BusinessProfileResponse response = profileWith(new SamEntityResponse(
+                1, List.of(entity(UEI, "Acme Federal LLC", "Active"))
+        ));
+
+        assertEquals(
+                BusinessProfileResponse.SourceStatus.AVAILABLE,
+                response.registration().status()
+        );
+        assertEquals("Acme Federal LLC", response.registration().legalBusinessName());
+        assertEquals(
+                BusinessProfileResponse.SourceStatus.SAMPLE,
+                response.awardHistory().status()
+        );
+    }
+
+    @Test
+    void reportsUnavailableWhenUeiDoesNotMatch() {
+        BusinessProfileResponse response = profileWith(new SamEntityResponse(
+                1, List.of(entity("OTHER1234567", "Acme Federal LLC", "Active"))
+        ));
+
+        assertEquals(
+                BusinessProfileResponse.SourceStatus.UNAVAILABLE,
+                response.registration().status()
+        );
+        assertNull(response.registration().legalBusinessName());
+    }
+
+    @Test
+    void reportsUnavailableWhenBusinessNameIsBlank() {
+        BusinessProfileResponse response = profileWith(new SamEntityResponse(
+                1, List.of(entity(UEI, "  ", "Active"))
+        ));
+
+        assertEquals(
+                BusinessProfileResponse.SourceStatus.UNAVAILABLE,
+                response.registration().status()
+        );
+    }
+
+    @Test
+    void reportsUnavailableWhenMultipleRecordsReturned() {
+        BusinessProfileResponse response = profileWith(new SamEntityResponse(
+                2, List.of(
+                        entity(UEI, "Acme Federal LLC", "Active"),
+                        entity(UEI, "Acme Duplicate LLC", "Active")
+                )
+        ));
+
+        assertEquals(
+                BusinessProfileResponse.SourceStatus.UNAVAILABLE,
+                response.registration().status()
+        );
+    }
+
+    @Test
+    void reportsUnavailableWhenCountAndDataDisagree() {
+        BusinessProfileResponse response =
+                profileWith(new SamEntityResponse(1, List.of()));
+
+        assertEquals(
+                BusinessProfileResponse.SourceStatus.UNAVAILABLE,
+                response.registration().status()
+        );
+    }
+
+    @Test
+    void reportsUnavailableWhenRegistrationSectionMissing() {
+        BusinessProfileResponse response = profileWith(new SamEntityResponse(
+                1, List.of(new SamEntity(null))
+        ));
+
+        assertEquals(
+                BusinessProfileResponse.SourceStatus.UNAVAILABLE,
+                response.registration().status()
         );
     }
 }
