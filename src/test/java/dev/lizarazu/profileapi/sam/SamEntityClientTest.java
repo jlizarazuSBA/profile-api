@@ -33,7 +33,6 @@ class SamEntityClientTest {
                                 + "?api_key=test-api-key"
                                 + "&ueiSAM=ABCD12345678"
                                 + "&includeSections=entityRegistration"
-                                + "&sensitivity=public"
                 ))
                 .andExpect(method(HttpMethod.GET))
                 .andExpect(header("Accept", "application/json"))
@@ -94,7 +93,6 @@ void mapsResponseWithNoMatchingEntities() {
                             + "?api_key=test-api-key"
                             + "&ueiSAM=ABCD12345678"
                             + "&includeSections=entityRegistration"
-                            + "&sensitivity=public"
             ))
             .andExpect(method(HttpMethod.GET))
             .andRespond(withSuccess(
@@ -135,7 +133,6 @@ void propagatesUpstreamServiceFailure() {
                             + "?api_key=test-api-key"
                             + "&ueiSAM=ABCD12345678"
                             + "&includeSections=entityRegistration"
-                            + "&sensitivity=public"
             ))
             .andExpect(method(HttpMethod.GET))
             .andRespond(withStatus(HttpStatus.SERVICE_UNAVAILABLE));

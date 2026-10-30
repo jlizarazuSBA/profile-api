@@ -20,7 +20,6 @@ public class SamEntityClient {
                         .queryParam("api_key", apiKey)
                         .queryParam("ueiSAM", uei)
                         .queryParam("includeSections", "entityRegistration")
-                        .queryParam("sensitivity", "public")
                         .build())
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
