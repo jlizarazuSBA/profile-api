@@ -1,5 +1,6 @@
 package dev.lizarazu.profileapi.usaspending;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -17,9 +18,30 @@ public class UsaSpendingClient {
     );
 
     private final RestClient restClient;
+    private final Clock clock;
+    private final int lookbackYears;
+    private final int resultLimit;
 
-    public UsaSpendingClient(RestClient restClient) {
+    public UsaSpendingClient(
+            RestClient restClient,
+            Clock clock,
+            int lookbackYears,
+            int resultLimit
+    ) {
         this.restClient = restClient;
+        this.clock = clock;
+        this.lookbackYears = lookbackYears;
+        this.resultLimit = resultLimit;
+    }
+
+    public UsaSpendingAwardResponse searchRecentContracts(String recipientName) {
+        LocalDate endDate = LocalDate.now(clock);
+        return searchContracts(
+                recipientName,
+                endDate.minusYears(lookbackYears),
+                endDate,
+                resultLimit
+        );
     }
 
     public UsaSpendingAwardResponse searchContracts(

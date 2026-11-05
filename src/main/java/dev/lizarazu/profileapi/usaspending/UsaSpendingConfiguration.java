@@ -1,6 +1,7 @@
 package dev.lizarazu.profileapi.usaspending;
 
 import java.net.http.HttpClient;
+import java.time.Clock;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -44,6 +45,11 @@ public class UsaSpendingConfiguration {
                 .requestFactory(requestFactory)
                 .build();
 
-        return new UsaSpendingClient(restClient);
+        return new UsaSpendingClient(
+            restClient,
+            Clock.systemDefaultZone(),
+            properties.lookbackYears(),
+            properties.resultLimit()
+        );
     }
 }

@@ -2,6 +2,9 @@ package dev.lizarazu.profileapi.usaspending;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +31,11 @@ class UsaSpendingClientTest {
     private static final String URL =
             "https://usaspending.example/api/v2/search/spending_by_award/";
 
+    private static final Clock FIXED_CLOCK =
+            Clock.fixed(Instant.parse("2026-11-04T12:00:00Z"), ZoneOffset.UTC);
+
     private MockRestServiceServer server;
+    private RestClient restClient;
     private UsaSpendingClient client;
 
     @BeforeEach
@@ -36,7 +43,8 @@ class UsaSpendingClientTest {
         RestClient.Builder builder = RestClient.builder()
                 .baseUrl("https://usaspending.example");
         server = MockRestServiceServer.bindTo(builder).build();
-        client = new UsaSpendingClient(builder.build());
+        restClient = builder.build();
+        client = new UsaSpendingClient(restClient, FIXED_CLOCK, 5, 5);
     }
 
     @Test
@@ -135,5 +143,30 @@ class UsaSpendingClientTest {
                 "BULLS RUN GROUP, LLC, THE", LocalDate.of(2021, 10, 1),
                 LocalDate.of(2026, 9, 30), 5
         ));
+    }
+
+        @Test
+    void searchRecentContractsUsesConfiguredWindowAndLimit() {
+        UsaSpendingClient configured =
+                new UsaSpendingClient(restClient, FIXED_CLOCK, 3, 7);
+
+        server.expect(requestTo(URL))
+                .andExpect(jsonPath("$.filters.recipient_search_text[0]")
+                        .value("ACME FEDERAL LLC"))
+                .andExpect(jsonPath("$.filters.time_period[0].start_date")
+                        .value("2023-11-04"))
+                .andExpect(jsonPath("$.filters.time_period[0].end_date")
+                        .value("2026-11-04"))
+                .andExpect(jsonPath("$.limit").value(7))
+                .andRespond(withSuccess(
+                        """
+                        { "results": [], "page_metadata": { "page": 1, "hasNext": false } }
+                        """,
+                        MediaType.APPLICATION_JSON
+                ));
+
+        configured.searchRecentContracts("ACME FEDERAL LLC");
+
+        server.verify();
     }
 }

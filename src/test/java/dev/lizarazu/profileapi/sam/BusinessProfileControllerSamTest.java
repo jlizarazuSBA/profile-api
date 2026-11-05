@@ -64,7 +64,7 @@ class BusinessProfileControllerSamTest {
                         .value("Active"))
                 .andExpect(jsonPath("$.awardHistory.status").value("SAMPLE"))
                 .andExpect(jsonPath("$.notices[0]").value(
-                        "SAM.gov registration lookup was attempted for the supplied UEI."
+                        "Registration data retrieved from SAM.gov."
                 ));
     }
 
